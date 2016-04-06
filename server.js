@@ -1,107 +1,43 @@
-const auth = require('basic-auth')
-const http = require('http')
-const Redis = require('ioredis')
-const redis = new Redis(process.env.REDIS_URL)
 
-const USER = process.env.SERVER_USER || 'foo'
-const PASS = process.env.SERVER_PASS || 'bar'
+const TOKEN = process.env.TOKEN || 'foo'
 const PORT = process.env.PORT || 5000
 
-const server = http.createServer( (req, res) => {
+const http = require('http')
+const Redis = require('ioredis')
+const express = require('express')
+const bodyParser = require('body-parser')
+const cors = require('cors')
 
-  console.log(`${req.method} - ${req.url}`)
-
-  const url = req.url == '/' ? '/index.html' : req.url
-
-  if(req.method.toLowerCase() == 'post') {
-
-    const user = auth(req)
-
-    if(user.name !== USER || user.pass !== PASS) {
-      console.log("❌  Rejected", user)
-
-      res.writeHead(401, {'Content-Type': 'text/plain'});
-      res.end('401 Unauthorized');
-
-      return
-    }
+const redis = new Redis(process.env.REDIS_URL)
+const app = express()
 
 
-    var body = ''
+app.get('*', (req, res, next) => {
 
-    req.on('data', (chunk) => {
-        body += chunk.toString()
+  redis
+    .get(`body.${req.originalUrl}`)
+    .then( data => {
+      if(data === null)
+        res.sendStatus(404)
+      else
+        res.send(data)
+    })
+    .catch(next)
+})
 
-        // limit just in case (~16MB)
-        if (body.length > 16e6) req.connection.destroy();
-    });
+app.all('/upload', cors())
+app.post('/upload', bodyParser.json(), (req, res, next) => {
 
-    req.on('end', () => {
+  if(req.headers.token !== TOKEN)
+    return res.sendStatus(401)
 
-      const type = req.headers['content-type'] || 'text/plain'
-
-
-      redis
-        .multi()
-          .set(`type.${url}`, type)
-          .set(`body.${url}`, body)
-        .exec()
-        .then( () => {
-
-          console.log(`✅  STORED ${url} | ${type} | (${body.length}) `)
-
-          res.writeHead(200, {'Content-Type': 'text/plain'})
-          res.end('200 saved')
-
-
-        })
-        .catch( e => {
-
-          console.error(e)
-
-          res.writeHead(500, {'Content-Type': 'text/plain'})
-          res.end('500 error')
-
-        })
-
-
-
-    });
-
-
-  } else {
-
-    console.log(`GET: data.${url}`)
-
+  if(req.body.path && req.body.content)
     redis
-      .multi()
-        .get(`type.${url}`)
-        .get(`body.${url}`)
-      .exec()
-      .then( (result) => {
-
-
-        var e = result[0][0] || result[1][0]
-        if(e) throw e
-
-        var type = result[0][1]
-        var body = result[1][1]
-
-        // didn't find anything
-        if(type === null || body === null) {
-          res.writeHead(404, {'Content-Type': 'text/plain'});
-          res.end('404')
-        } else {
-          res.writeHead(200, {'Content-Type': type});
-          res.end(body)
-        }
-
-
-      })
-
-
-  }
+      .set(`body.${req.body.path}`, req.body.content)
+      .then( _ => res.sendStatus(200))
+      .catch(next)
 
 })
 
-server.listen(PORT)
+
+app.listen(PORT)
