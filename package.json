@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/benfoxall/live-server/issues"
   },
-  "homepage": "https://github.com/benfoxall/live-server#readme"
+  "homepage": "https://github.com/benfoxall/live-server#readme",
+  "dependencies": {
+    "basic-auth": "^1.0.3",
+    "ioredis": "^1.15.1"
+  }
 }
