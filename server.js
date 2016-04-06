@@ -5,7 +5,7 @@ const redis = new Redis(process.env.REDIS_URL)
 
 const USER = process.env.SERVER_USER || 'foo'
 const PASS = process.env.SERVER_PASS || 'bar'
-const PORT = process.env.SERVER_PORT || 5000
+const PORT = process.env.PORT || 5000
 
 const server = http.createServer( (req, res) => {
 
