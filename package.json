@@ -1,0 +1,20 @@
+{
+  "name": "live-server",
+  "version": "1.0.0",
+  "description": "A super basic &amp; pretty rubbish static file server",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Lol\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benfoxall/live-server.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/benfoxall/live-server/issues"
+  },
+  "homepage": "https://github.com/benfoxall/live-server#readme"
+}
