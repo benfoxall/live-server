@@ -1,7 +1,7 @@
 const auth = require('basic-auth')
 const http = require('http')
 const Redis = require('ioredis')
-const redis = new Redis()
+const redis = new Redis(process.env.REDIS_URL)
 
 const USER = process.env.SERVER_USER || 'foo'
 const PASS = process.env.SERVER_PASS || 'bar'
